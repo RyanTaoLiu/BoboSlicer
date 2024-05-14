@@ -14,20 +14,22 @@ def get_uuid():
     return r_uuid.decode('utf-8').replace('=', '')
 
 def excel2list(excelpath):
-    frame = pd.read_excel(excelpath)
-    sheet_names = frame.sheet_names
-    all_sheets = dict()
-    for s in sheet_names:
-        df = pd.read_excel('path/to/excel/file.xlsx', sheet_name='Sheet1')
-        type_list = []
-        k_list = []
-        isovalue_list = []
-        posx_list = []
-        posy_list = []
+    xl = pd.ExcelFile(excelpath)
+    sheet_names = xl.sheet_names
+    all_sheets = []
 
+    for sn in sheet_names:
+        df = pd.read_excel(excelpath, sheet_name=sn)
+        excelHeaderList = ['Code', 'Type', 'K', 'IsoValue', 'PosX', 'PosY', 'xPadding', 'yPadding']
+        df_dict = df.to_dict(orient='split', index=False)
+
+        assert df_dict['columns'] == excelHeaderList, \
+            'Error Excel columns is {}, but need to be {}'.format(str(df_dict['columns']), str(excelHeaderList))
+        all_sheets.append(df_dict)
+    return sheet_names, all_sheets
 
 if __name__ == '__main__':
-    pass
+    excel2list('TPMS-param.xlsx')
 
 
 

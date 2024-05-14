@@ -54,6 +54,9 @@ class LCDSlicer:
             self.objects.pop(uuid)
             self.updateAABB()
             return None
+
+        pixelBasedObj.uuid = uuid
+        obj.uuid = uuid
         return uuid
 
     def init_slice(self, outFolder='out'):
@@ -379,6 +382,59 @@ def main_test_all_withpadding(outfile):
     lcdslicer.slice()
     lcdslicer.posprocess(outfile)
 
+
+def mainIOExcel(excelPath):
+    sheets_name, sheets_dict = excel2list(excelPath)
+
+    for sheetidx, sheet_name in enumerate(sheets_name):
+        print('*'*10+ 'task:{} - {}'.format(sheetidx, sheet_name)+'*'*10)
+
+        remove_all_temp_files()
+        printer = mega8ks()
+        lcdslicer = LCDSlicer(printer)
+        cycleLayerNumberList = []
+        sheet_data = sheets_dict[sheetidx]['data']
+
+        print(sheet_data)
+        print('*'*30)
+
+        for _obj in sheet_data:
+            type, k, isovalue, posx, posy, xpadding, ypadding = _obj[1:]
+
+            # calculate cycle layer number, fks and gyroid is equals k
+            gyroidCycleLayerThickness = k
+            cycleLayerNumber = int(math.floor(gyroidCycleLayerThickness / printer.delta[2]))
+            cycleLayerNumberList.append(cycleLayerNumber)
+
+            # set implicit function
+            if type.lower() == 'gyroidsolid':
+                func = GyroidSolid(k=k, isovalue=isovalue, cycleLayerNumber=cycleLayerNumber,
+                                   x_padding_px=xpadding, y_padding_px=ypadding)
+            elif type.lower() == 'gyroidsheet':
+                func = GyroidSheet(k=k, isovalue=isovalue, cycleLayerNumber=cycleLayerNumber,
+                                   x_padding_px=xpadding, y_padding_px=ypadding)
+            elif type.lower() == 'fkssolid':
+                func = FKSSolid(k=k, isovalue=isovalue, cycleLayerNumber=cycleLayerNumber,
+                                x_padding_px=xpadding, y_padding_px=ypadding)
+            elif type.lower() == 'fkssheet':
+                func = FKSSheet(k=k, isovalue=isovalue, cycleLayerNumber=cycleLayerNumber,
+                                x_padding_px=xpadding, y_padding_px=ypadding)
+            else:
+                assert 'No kinds of this implicit function'
+
+            obj = printObject(func, posX=posx, posY=posy, supprotExtend='X')
+            objId = lcdslicer.addObject(obj)
+            obj.uuid = objId
+
+        allcycleLayerNumber = np.lcm.reduce(cycleLayerNumberList)
+        lcdslicer.cycleNumber = allcycleLayerNumber
+        lcdslicer.slice()
+        lcdslicer.posprocess('results/{}.prz'.format(sheet_name))
+
+        print('*'*10 + 'task - end: {}'.format('results/{}.prz'.format(sheet_name))+'*'*10)
+
+
+
 if __name__ == '__main__':
     # with Manager() as manager:
     #    obj_zi = manager.dict()
@@ -389,6 +445,7 @@ if __name__ == '__main__':
     # main('results/out1.prz')
 
     # test for AN real result for printing
-    main_test_all('results/AN_test2.prz')
+    # main_test_all('results/AN_test2.prz')
     # main_test_all_withpadding('results/AN_test_wi_padding.prz')
+    mainIOExcel('TPMS-param.xlsx')
 

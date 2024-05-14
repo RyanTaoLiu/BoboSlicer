@@ -87,7 +87,8 @@ class gcodeDeal:
         return self.base_gcode_template.format(**paramaters)
 
     def gcode_template_layer(self, **kwargs):
-        '''
+        cure_time_delay = 1300
+
         if 'cure_time_delay' in kwargs:
             cure_time_delay = kwargs['cure_time_delay']
         elif kwargs['layerIdx'] == 6:
@@ -102,10 +103,11 @@ class gcodeDeal:
             cure_time_delay = 6080
         else:
             cure_time_delay = 1300
+
         '''
-        cure_time_delay = 1300
         if 'cure_time_delay' in kwargs:
             cure_time_delay = kwargs['cure_time_delay']
+        '''
 
         paramaters = {
             'layer_idx': kwargs['layerIdx'],

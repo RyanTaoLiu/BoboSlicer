@@ -163,5 +163,5 @@ cython_debug/
 UVtools/
 results/
 out/
-template/
+template/raft/
 tools/

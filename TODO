@@ -1,0 +1,3 @@
+1. add settings like ini to set the paramaters,
+## Bottom layers:{Num Bottom layers, Wait before cure, Exposure time, Wait after cure, Lift height, Lift speed, Wait after lift, Retract speed, Retract height,  Light PWM}
+## Normal layers:{Transition layers, Light-off delay, Wait before cure, Exposure time, Wait after cure, Lift height, Lift speed, Wait after lift, Retract speed, Retract height}

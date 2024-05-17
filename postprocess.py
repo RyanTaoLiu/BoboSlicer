@@ -23,9 +23,6 @@ class gcodeDeal:
         self.totalLayer = kwargs['totalLayer']
         self.layerThickness = 0.05 if 'layerThickness' not in kwargs else kwargs['layerThickness']
 
-        self.cycleNumber = 0 if 'cycleNumber' not in kwargs else kwargs['cycleNumber']
-        self.raftLayerNumber = 99 if 'raftLayer' not in kwargs else kwargs['raftLayer']
-
         self.img_name_template = lambda layer: '{}.png'.format(layer)
 
         with open('template/header.gcode') as f:
@@ -87,7 +84,7 @@ class gcodeDeal:
         return self.base_gcode_template.format(**paramaters)
 
     def gcode_template_layer(self, **kwargs):
-        cure_time_delay = 1300
+        cure_time_delay = 1500
 
         if 'cure_time_delay' in kwargs:
             cure_time_delay = kwargs['cure_time_delay']
@@ -102,7 +99,7 @@ class gcodeDeal:
         elif kwargs['layerIdx'] == 10:
             cure_time_delay = 6080
         else:
-            cure_time_delay = 1300
+            cure_time_delay = 1500
 
         '''
         if 'cure_time_delay' in kwargs:

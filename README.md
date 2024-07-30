@@ -14,9 +14,7 @@ pip install numpy scipy pandas pillow tqdm uuid-utils
 git clone https://github.com/RyanTaoLiu/BoboSlicer.git
 cd BoboSlicer
 # git switch dev
-mkdir out
-mkdir results
-mkdir UVtools
+mkdir out results UVtools
 ```
 
 Download [UVtools](https://github.com/sn4k3/UVtools/releasesand) and unzip files into 'UVtools' folder.

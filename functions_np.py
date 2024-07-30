@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 import math
 
+
 ## ABC
 class ImplicitFunction(ABC):
     def __init__(self, **kwargs):
@@ -27,14 +28,15 @@ class ImplicitFunction(ABC):
         ymin, ymax = y.min(), y.max()
 
         if x_padding > 0:
-            value[x-xmin <= x_padding or xmax-x <= x_padding] = 255
+            value[x - xmin <= x_padding or xmax - x <= x_padding] = 255
         if y_padding > 0:
-            value[y-ymin <= y_padding or ymax-y <= y_padding] = 255
+            value[y - ymin <= y_padding or ymax - y <= y_padding] = 255
         return value
 
 
 class ImplicitFunctionFactory():
     pass
+
 
 class Gyroid(ImplicitFunction):
     def __init__(self, cycleLayerNumber=25, **kwargs):
@@ -44,10 +46,10 @@ class Gyroid(ImplicitFunction):
 
     def __call__(self, x, y, z, zi):
         if zi < self.cycleLayerNumber:
-            _x, _y, _z = x * np.pi * 2/2, y* np.pi * 2/2, z * np.pi * 2/2
+            _x, _y, _z = x * np.pi * 2 / 2, y * np.pi * 2 / 2, z * np.pi * 2 / 2
             value = np.sin(_x) * np.cos(_y) + \
-                np.sin(_y) * np.cos(_z) + \
-                np.sin(_z) * np.cos(_x)
+                    np.sin(_y) * np.cos(_z) + \
+                    np.sin(_z) * np.cos(_x)
             bitmap = (value > 0).astype(int) * 255
             self.savedSlicer[zi] = bitmap.copy()
             return bitmap
@@ -65,10 +67,10 @@ class Gyroid1(ImplicitFunction):
 
     def __call__(self, x, y, z, zi):
         if zi < self.cycleLayerNumber:
-            _x, _y, _z = x * np.pi * 2/10, y* np.pi * 2/10, z * np.pi * 2/10
+            _x, _y, _z = x * np.pi * 2 / 10, y * np.pi * 2 / 10, z * np.pi * 2 / 10
             value = np.sin(_x) * np.cos(_y) + \
-                np.sin(_y) * np.cos(_z) + \
-                np.sin(_z) * np.cos(_x)
+                    np.sin(_y) * np.cos(_z) + \
+                    np.sin(_z) * np.cos(_x)
             bitmap = (value > self.isovalue).astype(int) * 255
             if self.cycleLayerNumber < 3000:
                 self.savedSlicer[zi] = bitmap.copy()
@@ -76,6 +78,7 @@ class Gyroid1(ImplicitFunction):
         else:
             oldz = zi % self.cycleLayerNumber
             return self.savedSlicer[oldz]
+
 
 ## ABC
 class TPMS(ImplicitFunction):
@@ -101,15 +104,16 @@ class TPMS(ImplicitFunction):
     def postprocess(self, x, y, value):
         return self.padding(x, y, value, self.x_padding_mm, self.y_padding_mm)
 
+
 class GyroidSolid(TPMS):
     def __init__(self, k, isovalue=0, cycleLayerNumber=1e9, **kwargs):
         super().__init__(k, isovalue, cycleLayerNumber, **kwargs)
 
     def __call__(self, x, y, z, zi):
         if zi < self.cycleLayerNumber:
-            _x = x * np.pi * 2 /self.k
-            _y = y * np.pi * 2 /self.k
-            _z = z * np.pi * 2 /self.k
+            _x = x * np.pi * 2 / self.k
+            _y = y * np.pi * 2 / self.k
+            _z = z * np.pi * 2 / self.k
 
             value = np.sin(_x) * np.cos(_y) + \
                     np.sin(_y) * np.cos(_z) + \
@@ -131,9 +135,9 @@ class GyroidSheet(TPMS):
 
     def __call__(self, x, y, z, zi):
         if zi < self.cycleLayerNumber:
-            _x = x * np.pi * 2 /self.k
-            _y = y * np.pi * 2 /self.k
-            _z = z * np.pi * 2 /self.k
+            _x = x * np.pi * 2 / self.k
+            _y = y * np.pi * 2 / self.k
+            _z = z * np.pi * 2 / self.k
 
             value = np.sin(_x) * np.cos(_y) + \
                     np.sin(_y) * np.cos(_z) + \
@@ -150,6 +154,7 @@ class GyroidSheet(TPMS):
             oldz = zi % self.cycleLayerNumber
             return self.savedSlicer[oldz]
 
+
 class FKSSolid(TPMS):
     def __init__(self, k, isovalue=0, cycleLayerNumber=1e9, **kwargs):
         super().__init__(k, isovalue, cycleLayerNumber, **kwargs)
@@ -160,9 +165,9 @@ class FKSSolid(TPMS):
             _y = y * np.pi * 2 / self.k
             _z = z * np.pi * 2 / self.k
 
-            value = np.cos(2 * _x) *    np.sin(_y) *        np.cos(_z) + \
-                    np.cos(_x) *        np.cos(2 * _y) *    np.sin(_z) +\
-                    np.sin(_x) *        np.cos(_y) *        np.cos(2 * _z)
+            value = np.cos(2 * _x) * np.sin(_y) * np.cos(_z) + \
+                    np.cos(_x) * np.cos(2 * _y) * np.sin(_z) + \
+                    np.sin(_x) * np.cos(_y) * np.cos(2 * _z)
             bitmap = (value > self.isovalue).astype(int) * 255
 
             if self.cycleLayerNumber < 3000:
@@ -172,6 +177,7 @@ class FKSSolid(TPMS):
         else:
             oldz = zi % self.cycleLayerNumber
             return self.savedSlicer[oldz]
+
 
 class FKSSheet(TPMS):
     def __init__(self, k, isovalue=0, cycleLayerNumber=1e9, **kwargs):
@@ -183,9 +189,9 @@ class FKSSheet(TPMS):
             _y = y * np.pi * 2 / self.k
             _z = z * np.pi * 2 / self.k
 
-            value = np.cos(2 * _x) *    np.sin(_y) *        np.cos(_z) + \
-                    np.cos(_x) *        np.cos(2 * _y) *    np.sin(_z) +\
-                    np.sin(_x) *        np.cos(_y) *        np.cos(2 * _z)
+            value = np.cos(2 * _x) * np.sin(_y) * np.cos(_z) + \
+                    np.cos(_x) * np.cos(2 * _y) * np.sin(_z) + \
+                    np.sin(_x) * np.cos(_y) * np.cos(2 * _z)
 
             value = np.abs(value)
             bitmap = (value < self.isovalue).astype(int) * 255
@@ -198,8 +204,9 @@ class FKSSheet(TPMS):
             oldz = zi % self.cycleLayerNumber
             return self.savedSlicer[oldz]
 
+
 class GyroidSolidOBBRotation(TPMS):
-    def __init__(self, k, isovalue, OBBSize=None, theta=math.pi/6):
+    def __init__(self, k, isovalue, OBBSize=None, theta=math.pi / 6):
         super().__init__(k, isovalue)
         if OBBSize is None:
             self.OBBSize = np.asarray([300, 25, 300])
@@ -218,25 +225,24 @@ class GyroidSolidOBBRotation(TPMS):
             [0, np.cos(self.theta), np.sin(self.theta)],
             [0, -np.sin(self.theta), np.cos(self.theta)]
         ])
-        self.O = np.array([0, self.OBBSize[1]*cosTheta , self.OBBSize[1]*sinTheta])
+        self.O = np.array([0, self.OBBSize[1] * cosTheta, self.OBBSize[1] * sinTheta])
 
         self.k = k
         self.isovalue = isovalue
 
-        self.OBBCenter = self.AABBSize/2
-        self.OBBLength = self.OBBSize/2
+        self.OBBCenter = self.AABBSize / 2
+        self.OBBLength = self.OBBSize / 2
         self.OBBAxis = self.R @ np.eye(3)
 
-        self.Tz = k * self.OBBSize[1]/2
+        self.Tz = k * self.OBBSize[1] / 2
 
     def gyroid(self, xyz):
         x, y, z = xyz[:, 0], xyz[:, 1], xyz[:, 2]
-        return np.sin(x)*np.cos(y) + np.sin(y)*np.cos(z) + np.sin(z)*np.cos(x)
-
+        return np.sin(x) * np.cos(y) + np.sin(y) * np.cos(z) + np.sin(z) * np.cos(x)
 
     def __call__(self, xx, yy, zz, zi):
-        xyz = np.vstack((xx, yy, zz+np.zeros_like(xx))) # position
-        xyzNew = xyz * np.pi * 2 / self.k   # used to calculate the TPMS
+        xyz = np.vstack((xx, yy, zz + np.zeros_like(xx)))  # position
+        xyzNew = xyz * np.pi * 2 / self.k  # used to calculate the TPMS
         Tz = np.zeros_like(xyzNew)
         Tz[:, 1] = self.Tz
         new_xyz = self.R @ xyzNew + Tz

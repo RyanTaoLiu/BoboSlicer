@@ -27,11 +27,12 @@ def mainIOExcel(excelPath):
         cycleLayerNumberList = []
         sheet_data = sheets_dict[sheetidx]['data']
 
-        print(sheet_data)
+        for it in sheet_data:
+            print(it)
         print('*'*30)
 
         for _obj in sheet_data:
-            type, k, isovalue, posx, posy, xpadding, ypadding = _obj[1:]
+            type, k, isovalue, posx, posy, xpadding, ypadding, width, height, deepth = _obj[1:]
 
             # calculate cycle layer number, fks and gyroid is equals k
             gyroidCycleLayerThickness = k
@@ -39,6 +40,7 @@ def mainIOExcel(excelPath):
             cycleLayerNumberList.append(cycleLayerNumber)
 
             # set implicit function
+            func = None
             if type.lower() == 'gyroidsolid':
                 func = GyroidSolid(k=k, isovalue=isovalue, cycleLayerNumber=cycleLayerNumber,
                                    x_padding_px=xpadding, y_padding_px=ypadding)
@@ -54,7 +56,9 @@ def mainIOExcel(excelPath):
             else:
                 assert 'No kinds of this implicit function'
 
-            obj = printObject(func, posX=posx, posY=posy, supprotExtend='X')
+            obj = printObject(func, width=width, height=height, depth=deepth,
+                              posX=posx, posY=posy, supprotExtend='X')
+
             objId = lcdslicer.addObject(obj)
             obj.uuid = objId
 
@@ -65,9 +69,11 @@ def mainIOExcel(excelPath):
 
         print('*'*10 + 'task - end: {}'.format('results/{}.prz'.format(sheet_name))+'*'*10)
 
-def main_test_rot(outpath):
+def main_test_rot(arg):
+    i, cpunumber, raft = arg
     # do not change below
-    remove_all_temp_files()
+    if raft:
+        remove_all_temp_files()
 
     printer = mega8ks()
     lcdslicer = LCDSlicer(printer)
@@ -80,8 +86,11 @@ def main_test_rot(outpath):
                        posX=15, posY=8, supprotExtend='None')
     obj1Id = lcdslicer.addObject(obj1)
     obj1.uuid = obj1Id
-
-    lcdslicer.slice()
+    if raft:
+        lcdslicer.init_slice()
+        lcdslicer.slice_raft()
+    else:
+        lcdslicer.slice_multithread(i, cpunumber)
 
 def main_test_300x25x300(outpath):
     # do not change below
@@ -118,8 +127,15 @@ if __name__ == '__main__':
     # main_test_all('results/AN_test2.prz')
     # main_test_all_withpadding('results/AN_test_wi_padding.prz')
 
-    # mainIOExcel('TPMS-param.xlsx')
+    mainIOExcel('TPMS-param.xlsx')
+
+    # main_test_rot((1, 1, True))
+
+    #cpu_num = cpu_count() // 2
+    #with Pool(cpu_num) as p:
+    #    p.map(main_test_rot, [(i, cpu_num, False) for i in range(cpu_num)])
+
     # main_test_rot('results/AN_test_rot30.prz')
-    main_test_300x25x300('results/AN_test_rot30.prz')
+    # main_test_300x25x300('results/AN_test_rot30.prz')
 
 

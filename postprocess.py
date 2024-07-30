@@ -4,6 +4,10 @@ import datetime
 import subprocess
 import time
 
+import PIL.Image
+import numpy as np
+import tqdm
+
 def float2strLessthan2dicemic(x:float):
     _str = '{:.2f}'.format(x)
     if _str.endswith('.00'):
@@ -230,6 +234,42 @@ def postprocess(filename:str, gcode_settings, target_type=''):
     # os.remove('temp.zip')
 
 
+def merge_support(layersFolder, supportFolder, outFolder, offset_px=None, flip='Y'):
+    if offset_px is None:
+        offset_px = [0, 22, 100]
+
+    listLayers = os.listdir(layersFolder)
+    listSupportLayers = os.listdir(supportFolder)
+
+    allZLayers = len(listLayers)
+
+    # raft
+    for i in range(1, offset_px[2]+1):
+        # supportImg = PIL.Image.open(os.path.join(SupportFolder, '{}.png'.format(i)))
+        shutil.copy(os.path.join(supportFolder, '{}.png'.format(i)),
+                    (os.path.join(outFolder, '{}.png'.format(i))))
+
+    for i in tqdm.tqdm(range(1, allZLayers+1), desc='image blend:'):
+        layerImg = PIL.Image.open(os.path.join(layersFolder, '{}.png'.format(i)))
+        supportImgPath = os.path.join(supportFolder, '{}.png'.format(i + offset_px[2]))
+
+        transform = (1, 0, -offset_px[0], 0, 1, -offset_px[1])
+        flipLayerImg = layerImg.transpose(PIL.Image.FLIP_TOP_BOTTOM).\
+            transform(layerImg.size, PIL.Image.AFFINE, transform, fillcolor=0)
+
+        if '{}.png'.format(i + offset_px[2]) in listSupportLayers:
+            array1 = np.array(flipLayerImg)
+
+            supportImg = PIL.Image.open(supportImgPath)
+            array2 = np.array(supportImg)
+
+            max_array = np.maximum(array1, array2)
+            result_image = PIL.Image.fromarray(max_array, 'L')
+            result_image.save(os.path.join(outFolder, '{}.png'.format(i + offset_px[2])))
+        else:
+            flipLayerImg.save(os.path.join(outFolder, '{}.png'.format(i + offset_px[2])))
+
+
 if __name__ == '__main__':
     # test for zip file
     # zipfile('out.zip')
@@ -244,5 +284,7 @@ if __name__ == '__main__':
 
 
     # test for all
-    gcode_settings = {'totalLayer': 2499}
-    postprocess('out.prz', gcode_settings=gcode_settings)
+    # gcode_settings = {'totalLayer': 2499}
+    # postprocess('out.prz', gcode_settings=gcode_settings)
+
+    merge_support('out', 'template/diagonal_support/normal','results/out1')

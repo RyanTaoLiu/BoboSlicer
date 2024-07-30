@@ -20,7 +20,7 @@ def excel2list(excelpath):
 
     for sn in sheet_names:
         df = pd.read_excel(excelpath, sheet_name=sn)
-        excelHeaderList = ['Code', 'Type', 'K', 'IsoValue', 'PosX', 'PosY', 'xSeal', 'ySeal']
+        excelHeaderList = ['Code', 'Type', 'K', 'IsoValue', 'PosX', 'PosY', 'xSeal', 'ySeal', 'xAxisLength', 'yAxisLength', 'zAxisLength']
         df_dict = df.to_dict(orient='split', index=False)
 
         assert df_dict['columns'] == excelHeaderList, \

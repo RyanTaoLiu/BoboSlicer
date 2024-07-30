@@ -70,6 +70,10 @@ class LCDSlicer:
         size = (printer.voxelSize[0], printer.voxelSize[1])
         # img = Image.new("L", size, 0)
         img = np.zeros(size, dtype=np.uint8)
+
+        allVolume = []
+        occupyVolume = []
+
         for obj in self.objects.values():
             obj_img = obj.slice(zi)
             img[obj.posX:obj.posX + obj.width, obj.posY:obj.posY + obj.height] = obj_img
@@ -88,10 +92,14 @@ class LCDSlicer:
                 img[obj.posX + obj.width:obj.posX + obj.width + supportImg.shape[0],
                 obj.posY:obj.posY + supportImg.shape[1]] = np.flipud(supportImg)
 
+            allVolume.append(obj.width * obj.height)
+            occupyVolume.append(obj_img.sum()/255)
+
         _img = PIL.Image.fromarray(np.uint8(img.T), 'L')
         _img.save(os.path.join(outFolder, '{}.png'.format(ziidx + self.raftNumber + 1)))
+        return np.array(allVolume), np.array(occupyVolume)
 
-    def slice_raft(self, outFolder, offset=10):
+    def slice_raft(self, outFolder='out', offset=10):
         raftDir = os.path.join('template', 'raft', self.raft)
         allRaftsPng = os.listdir(raftDir)
         allRaftsPng = [it.endswith('png') for it in allRaftsPng]
@@ -156,32 +164,48 @@ class LCDSlicer:
 
     def slice_multithread(self, threeadNum, threadPoolSize, outFolder='out'):
         self.init_slice(outFolder)
-
-        for ziidx in tqdm.tqdm(range(len(self.zlayers)), desc='layer slicer'):
+        layerNumbers = len(self.zlayers)
+        for ziidx in tqdm.tqdm(range(layerNumbers), desc='layer slicer'):
             if ziidx % threadPoolSize != threeadNum:
                 continue
             self.slice_z(outFolder, ziidx)
 
+
     def slice(self, outFolder='out'):
+
+
         self.init_slice(outFolder)
         if self.raft is not None:
             self.slice_raft(outFolder)
 
         if self.cycleNumber == 0:
             layerNumbers = len(self.zlayers)
+
+            # calculate volume
+            all_volume = np.zeros((layerNumbers, len(self.objects)))
+            occupy_volume = np.zeros((layerNumbers, len(self.objects)))
+
             for ziidx in tqdm.tqdm(range(layerNumbers), desc='layer slicer'):
-                self.slice_z(outFolder, ziidx)
+                all_volume[ziidx], occupy_volume[ziidx] = self.slice_z(outFolder, ziidx)
+
         else:
             layerNumbers = self.cycleNumber
+
+            # calculate volume
+            all_volume = np.zeros((len(self.zlayers), len(self.objects)))
+            occupy_volume = np.zeros((len(self.zlayers), len(self.objects)))
+
             for ziidx in tqdm.tqdm(range(layerNumbers), desc='layer slicer'):
-                self.slice_z(outFolder, ziidx)
+                all_volume[ziidx], occupy_volume[ziidx] = self.slice_z(outFolder, ziidx)
 
             for ziidx in tqdm.tqdm(range(layerNumbers, len(self.zlayers)), desc='layer copy'):
-                realLayerIdx = ziidx
-                realLayerIdx %= self.cycleNumber
+                realLayerIdx = ziidx % self.cycleNumber
+                all_volume[ziidx] = all_volume[realLayerIdx]
+                occupy_volume[ziidx] = all_volume[realLayerIdx]
                 # print('{} => {}'.format(realLayerIdx + self.raftNumber+1, ziidx + self.raftNumber+1))
                 shutil.copy('{}/{}.png'.format(outFolder, realLayerIdx + self.raftNumber + 1),
                             '{}/{}.png'.format(outFolder, ziidx + self.raftNumber + 1))
+        print('The volume fraction of each object is ', occupy_volume.sum(0) / all_volume.sum(0))
 
     def posprocess(self, outfile: str, target_type=''):
         gcode_settings = {

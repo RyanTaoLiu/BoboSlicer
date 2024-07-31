@@ -17,7 +17,7 @@ cd BoboSlicer
 mkdir out results UVtools
 ```
 
-Download [UVtools](https://github.com/sn4k3/UVtools/releasesand) and unzip files into 'UVtools' folder.
+Download [UVtools](https://github.com/sn4k3/UVtools/releases) and unzip files into 'UVtools' folder.
 
 Download [template](https://drive.google.com/drive/folders/1vbAZ3YX8BE_tgX597sKFf5MoDsxhImY4?usp=sharing) and copy files to 'template' folder.
 

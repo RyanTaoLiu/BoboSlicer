@@ -1,6 +1,6 @@
 # BoboSlicer
 Bobo slicer, a DLP Slicer for TPMS slicing.
-The just need to change the parameters of excel to generate image slicing.
+Only need to change the parameters in TPMS-param.xlsx Excel to generate image slicing.
 
 ## prepare for env
 ```

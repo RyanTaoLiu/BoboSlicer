@@ -1,5 +1,6 @@
 # BoboSlicer
-Bobo slicer for TPMS DLP
+Bobo slicer, a DLP Slicer for TPMS slicing.
+The just need to change the parameters of excel to generate image slicing.
 
 ## prepare for env
 ```

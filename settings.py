@@ -172,8 +172,6 @@ class LCDSlicer:
 
 
     def slice(self, outFolder='out'):
-
-
         self.init_slice(outFolder)
         if self.raft is not None:
             self.slice_raft(outFolder)

@@ -201,7 +201,7 @@ class LCDSlicer:
             for ziidx in tqdm.tqdm(range(layerNumbers, len(self.zlayers)), desc='layer copy'):
                 realLayerIdx = ziidx % self.cycleNumber
                 all_volume[ziidx] = all_volume[realLayerIdx]
-                occupy_volume[ziidx] = all_volume[realLayerIdx]
+                occupy_volume[ziidx] = occupy_volume[realLayerIdx]
                 # print('{} => {}'.format(realLayerIdx + self.raftNumber+1, ziidx + self.raftNumber+1))
                 shutil.copy('{}/{}.png'.format(outFolder, realLayerIdx + self.raftNumber + 1),
                             '{}/{}.png'.format(outFolder, ziidx + self.raftNumber + 1))
